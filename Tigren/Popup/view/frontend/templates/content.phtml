@@ -1,0 +1,33 @@
+<?php
+    if($block->isModuleEnabled() === true)
+    {
+    ?>
+        <div id="content" style="display: none;">
+            <p>You have <?=$block->getQty();?> existing item(s) in the shopping cart, please clear the shopping cart before continues.</p>
+            <?php foreach($block->getItems() as $item): ?>
+                <p><?=$item->getProduct()->getName();?></p>
+            <?php endforeach; ?>
+        </div>
+
+        <div id="clear_cart_confirm" style="display: none;">
+            <p>You have <?=$block->getQty();?> existing item(s) in the shopping cart, please clear the shopping cart before continues.</p>
+            <?php foreach($block->getItems() as $item): ?>
+                <p><?=$item->getProduct()->getName();?></p>
+            <?php endforeach; ?>
+        </div>
+
+        <?php
+        $i = $block->isMultipleCart();
+        if($i > 0) {
+            ?>
+            <script type="text/x-magento-init">
+                {
+                    ".tocart": {
+                        "Tigren_Popup/js/popup": "<?= $block->getBaseUrl(); ?>"
+                    }
+                }
+            </script>
+        <?php } ?>
+    <?php
+    }
+?>
