@@ -16,6 +16,9 @@ use Magento\Framework\App\Action\Action;
 //    print_r($bestSellersCollection->toArray()); die();
 
 ?>
+<div class="content-heading">
+    <h2 class="title">New Product</h2>
+</div>
 <div class="new-product">
     <ol class="owl-carousel product-items widget-product-grid">
         <?php /** @var $_product \Magento\Catalog\Model\Product */ ?>
@@ -88,7 +91,9 @@ use Magento\Framework\App\Action\Action;
         </ol>
 </div>
 
-    <hr />
+<div class="content-heading">
+    <h2 class="title">Best Sellers</h2>
+</div>
 
 <div class="best-sellers">
     <ol class="owl-carousel product-items widget-product-grid">
