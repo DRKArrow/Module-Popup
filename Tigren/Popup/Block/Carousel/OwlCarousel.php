@@ -2,22 +2,9 @@
 namespace Tigren\Popup\Block\Carousel;
 
 use Magento\Catalog\Block\Product\Context;
-use Magento\Framework\View\Element\Template;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
-use Magento\Catalog\Block\Product\ProductList\Toolbar;
-use Magento\Catalog\Model\Category;
-use Magento\Catalog\Model\Config;
-use Magento\Catalog\Model\Layer;
 use Magento\Catalog\Model\Layer\Resolver;
-use Magento\Catalog\Model\Product;
-use Magento\Catalog\Pricing\Price\FinalPrice;
-use Magento\Eav\Model\Entity\Collection\AbstractCollection;
-use Magento\Framework\App\ActionInterface;
-use Magento\Framework\App\Config\Element;
 use Magento\Framework\Data\Helper\PostHelper;
-use Magento\Framework\DataObject\IdentityInterface;
-use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Pricing\Render;
 use Magento\Framework\Url\Helper\Data;
 
 class OwlCarousel extends \Magento\Catalog\Block\Product\ListProduct {
@@ -25,13 +12,16 @@ class OwlCarousel extends \Magento\Catalog\Block\Product\ListProduct {
 
     protected $_bestSellersCollection;
 
+    protected $_catalogProductTypeConfigurable;
     public function __construct(Context $context, PostHelper $postDataHelper, Resolver $layerResolver, CategoryRepositoryInterface $categoryRepository, Data $urlHelper,
                                 \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory,
                                 \Magento\Sales\Model\ResourceModel\Report\Bestsellers\CollectionFactory $bestSellersCollection,
+                                \Magento\ConfigurableProduct\Model\ResourceModel\Product\Type\Configurable $catalogProductTypeConfigurable,
                                 array $data = [])
     {
         $this->_productCollectionFactory = $productCollectionFactory;
         $this->_bestSellersCollection = $bestSellersCollection;
+        $this->_catalogProductTypeConfigurable = $catalogProductTypeConfigurable;
         parent::__construct($context, $postDataHelper, $layerResolver, $categoryRepository, $urlHelper, $data);
     }
 
@@ -51,7 +41,11 @@ class OwlCarousel extends \Magento\Catalog\Block\Product\ListProduct {
         $ids = [];
         foreach($collection as $item)
         {
-            $ids[] =  $item->getProductId();
+            $parentId = $this->_catalogProductTypeConfigurable->getParentIdsByChild($item->getProductId());
+            if(isset($parentId[0]))
+                $ids[] = $parentId[0];
+            else
+                $ids[] =  $item->getProductId();
         }
         return $ids;
     }
