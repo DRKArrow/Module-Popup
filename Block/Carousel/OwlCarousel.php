@@ -10,22 +10,18 @@ use Magento\Framework\Url\Helper\Data;
 class OwlCarousel extends \Magento\Catalog\Block\Product\ListProduct {
     protected $_productCollectionFactory;
 
-    protected $_bestSellersCollection;
+    protected $_resourceConnection;
 
-    protected $_catalogProductTypeConfigurable;
-
-    protected $__catalogProductVisibility;
+    protected $_collection;
     public function __construct(Context $context, PostHelper $postDataHelper, Resolver $layerResolver, CategoryRepositoryInterface $categoryRepository, Data $urlHelper,
                                 \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory,
-                                \Magento\Sales\Model\ResourceModel\Report\Bestsellers\CollectionFactory $bestSellersCollection,
-                                \Magento\ConfigurableProduct\Model\ResourceModel\Product\Type\Configurable $catalogProductTypeConfigurable,
-                                \Magento\Catalog\Model\Product\Visibility $catalogProductVisibility,
+                                \Magento\Framework\App\ResourceConnection $resourceConnection,
+                                \Magento\Catalog\Model\ResourceModel\Product\Collection $collection,
                                 array $data = [])
     {
         $this->_productCollectionFactory = $productCollectionFactory;
-        $this->_bestSellersCollection = $bestSellersCollection;
-        $this->_catalogProductTypeConfigurable = $catalogProductTypeConfigurable;
-        $this->_catalogProductVisibility = $catalogProductVisibility;
+        $this->_resourceConnection = $resourceConnection;
+        $this->_collection = $collection;
         parent::__construct($context, $postDataHelper, $layerResolver, $categoryRepository, $urlHelper, $data);
     }
 
@@ -59,45 +55,55 @@ class OwlCarousel extends \Magento\Catalog\Block\Product\ListProduct {
         return $collection;
     }
 
+    protected function _getBestSellersProducts()
+    {
+        $collection = $this->_collection;
+        $date = new \Zend_Date();
+        $today = $date->get('Y-MM-dd');
+        $fromDay = $date->subMonth(1)->getDate()->get('Y-MM-dd');
+        $connection = $this->_resourceConnection->getConnection();
+        $select = $connection->select();
+        $columns = [
+            'product_name' => 'si.name',
+            'product_id' => 'si.product_id',
+            'qty_ordered' => new \Zend_Db_Expr('count(product_id)')
+        ];
+
+        $select->from(
+            ['so' => $collection->getResource()->getTable('sales_order')],
+            $columns
+        )->joinInner(
+            ['si' => $collection->getResource()->getTable('sales_order_item')],
+            'so.entity_id = si.order_id',
+            []
+        )->where(
+            "so.created_at between '{$fromDay}' and '{$today}'"
+        )->where(
+            'so.state != ?',
+            \Magento\Sales\Model\Order::STATE_CANCELED
+        )->where(
+            'parent_item_id is null'
+        )->group('product_id')->limit(12)->order('qty_ordered desc');
+
+        $items = $connection->fetchAll($select);
+
+        $ids = [];
+
+        foreach($items as $item)
+        {
+            $ids[] = $item['product_id'];
+        }
+
+        $result = $this->_productCollectionFactory->create();
+        $result->addIdFilter($ids)
+            ->addAttributeToSelect('*');
+
+        return $result;
+    }
+
     public function getLoadedNewProductsCollection()
     {
         return $this->_getNewProducts();
-    }
-
-    protected function _getBestSellersIds()
-    {
-        $collection = $this->_bestSellersCollection->create();
-        $ids = [];
-        foreach($collection as $item)
-        {
-            $parentId = $this->_catalogProductTypeConfigurable->getParentIdsByChild($item->getProductId());
-            if(isset($parentId[0]))
-                $ids[] = $parentId[0];
-            else
-                $ids[] =  $item->getProductId();
-        }
-        return $ids;
-    }
-
-    protected function _getBestSellersProducts()
-    {
-//        $ids = $this->_getBestSellersIds();
-//        $collection = $this->_productCollectionFactory->create();
-//        $collection->addIdFilter($ids)
-//                    ->addAttributeToSelect('*')
-//                    ->setPageSize(12);
-        $date = new \Zend_Date();
-        $today = $date->setDay(1)->getDate()->get('Y-MM-dd');
-        $fromDay = $date->subMonth(1)->getDate()->get('Y-MM-dd');
-        $collection = $this->_productCollectionFactory->create()->addAttributeToSelect('*')->setPageSize(12);
-        $collection->getSelect()->joinRight(
-            array('aggregation' => $collection->getResource()->getTable('sales_bestsellers_aggregated_monthly')),
-            "e.entity_id = aggregation.product_id AND aggregation.period BETWEEN '{$fromDay}' AND '{$today}'",
-            array('SUM(aggregation.qty_ordered) AS sold_quantity')
-        )
-        ->group('e.entity_id')
-        ->order(array('sold_quantity DESC', 'e.created_at'));
-        return $collection;
     }
 
     public function getLoadedBestSellersProductCollection()

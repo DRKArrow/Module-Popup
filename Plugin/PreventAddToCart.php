@@ -50,10 +50,8 @@ class PreventAddToCart
             $i = 0;
             foreach($items as $item)
             {
-                $itemId = $item->getProduct()->getId();
-                $product = $this->_productRepository->getById($itemId);
-                if($product->getCustomAttribute('is_multiple_cart')) {
-                    if($product->getCustomAttribute('is_multiple_cart')->getValue() == 0) {
+                if($item->getProduct()->getCustomAttribute('is_multiple_cart')) {
+                    if($item->getProduct()->getCustomAttribute('is_multiple_cart')->getValue() == 0) {
                         $i++;
                     }
                 }
