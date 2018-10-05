@@ -6,27 +6,53 @@ use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Catalog\Model\Layer\Resolver;
 use Magento\Framework\Data\Helper\PostHelper;
 use Magento\Framework\Url\Helper\Data;
+use Tigren\Popup\Helper\Carousel;
 
 class OwlCarousel extends \Magento\Catalog\Block\Product\ListProduct {
+    protected $_newProductsNumber;
+
+    protected $_bestSellersNumber;
+
     protected $_productCollectionFactory;
 
     protected $_resourceConnection;
 
     protected $_collection;
+
+    protected $_carouselHelper;
     public function __construct(Context $context, PostHelper $postDataHelper, Resolver $layerResolver, CategoryRepositoryInterface $categoryRepository, Data $urlHelper,
                                 \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory,
                                 \Magento\Framework\App\ResourceConnection $resourceConnection,
                                 \Magento\Catalog\Model\ResourceModel\Product\Collection $collection,
+                                Carousel $carouselHelper,
                                 array $data = [])
     {
         $this->_productCollectionFactory = $productCollectionFactory;
         $this->_resourceConnection = $resourceConnection;
         $this->_collection = $collection;
+        $this->_carouselHelper = $carouselHelper;
         parent::__construct($context, $postDataHelper, $layerResolver, $categoryRepository, $urlHelper, $data);
+    }
+
+    protected function _limitNewProducts()
+    {
+        $this->_newProductsNumber = $this->_carouselHelper->getConfigurationConfig('new_product_conf');
+        if($this->_newProductsNumber === null)
+            $this->_newProductsNumber = 12;
+        return $this->_newProductsNumber;
+    }
+
+    protected function _limitBestSellers()
+    {
+        $this->_bestSellersNumber = $this->_carouselHelper->getConfigurationConfig('best_sellers_conf');
+        if($this->_bestSellersNumber === null)
+            $this->_bestSellersNumber = 12;
+        return $this->_bestSellersNumber;
     }
 
     protected function _getNewProducts()
     {
+        $limit = $this->_limitNewProducts();
         $today = date('Y-m-d');
         $collection = $this->_productCollectionFactory->create();
         $collection->addAttributeToSelect('*');
@@ -51,12 +77,13 @@ class OwlCarousel extends \Magento\Catalog\Block\Product\ListProduct {
                 ['attribute' => 'news_to_date', 'is' => new \Zend_Db_Expr('not null')]
             ]
         );
-        $collection->setPageSize(12);
+        $collection->setPageSize($limit);
         return $collection;
     }
 
     protected function _getBestSellersProducts()
     {
+        $limit = $this->_limitBestSellers();
         $collection = $this->_collection;
         $date = new \Zend_Date();
         $today = $date->addDay(1)->get('Y-MM-dd');
@@ -84,7 +111,7 @@ class OwlCarousel extends \Magento\Catalog\Block\Product\ListProduct {
         )->where(
             'parent_item_id is null'
         )->group('product_id')
-            ->limit(12)
+            ->limit($limit)
             ->order('sum_qty_ordered desc');
 
         $items = $connection->fetchAll($select);
@@ -112,5 +139,13 @@ class OwlCarousel extends \Magento\Catalog\Block\Product\ListProduct {
     public function getLoadedBestSellersProductCollection()
     {
         return $this->_getBestSellersProducts();
+    }
+
+    public function isModuleEnabled()
+    {
+        if($this->_carouselHelper->getGeneralConfig('enable') == 1)
+            return true;
+        else
+            return false;
     }
 }
