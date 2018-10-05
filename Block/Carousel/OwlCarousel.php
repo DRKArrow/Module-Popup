@@ -59,14 +59,14 @@ class OwlCarousel extends \Magento\Catalog\Block\Product\ListProduct {
     {
         $collection = $this->_collection;
         $date = new \Zend_Date();
-        $today = $date->get('Y-MM-dd');
+        $today = $date->addDay(1)->get('Y-MM-dd');
         $fromDay = $date->subMonth(1)->getDate()->get('Y-MM-dd');
         $connection = $this->_resourceConnection->getConnection();
         $select = $connection->select();
         $columns = [
             'product_name' => 'si.name',
             'product_id' => 'si.product_id',
-            'qty_ordered' => new \Zend_Db_Expr('count(product_id)')
+            'sum_qty_ordered' => new \Zend_Db_Expr('sum(qty_ordered)')
         ];
 
         $select->from(
@@ -83,9 +83,12 @@ class OwlCarousel extends \Magento\Catalog\Block\Product\ListProduct {
             \Magento\Sales\Model\Order::STATE_CANCELED
         )->where(
             'parent_item_id is null'
-        )->group('product_id')->limit(12)->order('qty_ordered desc');
+        )->group('product_id')
+            ->limit(12)
+            ->order('sum_qty_ordered desc');
 
         $items = $connection->fetchAll($select);
+//        print_r($select->__toString()); die();
 
         $ids = [];
 
