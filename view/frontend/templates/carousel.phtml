@@ -1,5 +1,8 @@
 <?php
+
 use Magento\Framework\App\Action\Action;
+
+if($block->isModuleEnabled() === true):
 
     $_objectManager = \Magento\Framework\App\ObjectManager::getInstance();
     $storeManager = $_objectManager->get('Magento\Store\Model\StoreManagerInterface');
@@ -183,5 +186,4 @@ use Magento\Framework\App\Action\Action;
 
         }
         </script>
-
-
+<?php endif; ?>

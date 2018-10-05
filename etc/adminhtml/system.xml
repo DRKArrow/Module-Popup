@@ -17,5 +17,27 @@
                 </field>
             </group>
         </section>
+        <section id="product_carousel" translate="label" sortOrder="140" showInDefault="1" showInWebsite="1" showInStore="1">
+            <class>separator-top</class>
+            <label>Product Carousel</label>
+            <tab>tigren</tab>
+            <resource>Tigren_Popup::product_carousel_config</resource>
+            <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>General Configuration</label>
+                <field id="enable" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Module Enable</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+            <group id="configuration" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Module Configuration</label>
+                <field id="new_product_conf" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Number of New Products slider</label>
+                </field>
+                <field id="best_sellers_conf" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Number of Best Sellers slider</label>
+                </field>
+            </group>
+        </section>
     </system>
 </config>

@@ -4,8 +4,16 @@
         <popup>
             <general>
                 <enable>1</enable>
-                <display_text>Hello World</display_text>
             </general>
         </popup>
+        <product_carousel>
+            <general>
+                <enable>1</enable>
+            </general>
+            <configuration>
+                <new_product_conf>12</new_product_conf>
+                <best_sellers_conf>12</best_sellers_conf>
+            </configuration>
+        </product_carousel>
     </default>
 </config>

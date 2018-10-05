@@ -7,6 +7,7 @@
                     <resource id="Magento_Backend::stores_settings">
                         <resource id="Magento_Config::config">
                             <resource id="Tigren_Popup::popup_config" title="Popup"/>
+                            <resource id="Tigren_Popup::product_carousel_config" title="Products Carousel" />
                         </resource>
                     </resource>
                 </resource>
