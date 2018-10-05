@@ -1,3 +1,9 @@
 .owl-carousel .owl-stage .owl-item .product-item-info {
     width: 100%;
 }
+
+.owl-carousel .owl-item .product-image-wrapper img {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+}
