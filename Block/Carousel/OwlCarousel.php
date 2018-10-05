@@ -78,6 +78,8 @@ class OwlCarousel extends \Magento\Catalog\Block\Product\ListProduct {
             ]
         );
         $collection->setPageSize($limit);
+        $collection->getSelect()->order('created_at desc');
+//        print_r($collection->getSelect()->__toString());die;
         return $collection;
     }
 
